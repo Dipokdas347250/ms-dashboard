@@ -42,7 +42,7 @@ export default function App() {
         <Route path="orders" element={<Orders />} />
         <Route path="orders/:id" element={<OrderDetail />} />
         <Route path="products" element={<Products />} />
-        <Route path="videos" element={<Videos />} />
+        {/* <Route path="videos" element={<Videos />} /> */}
         <Route path="customers" element={<Customers />} />
         <Route path="customers/:id" element={<CustomerDetail />} />
         <Route path="track" element={<TrackOrder />} />
