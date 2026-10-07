@@ -11,19 +11,16 @@ export const systemApi = {
 
 export const authApi = {
   login: (email, password) => http.post('/admin/login', { email, password }, { auth: false }),
+  registerStatus: () => http.get('/admin/register', { auth: false }),
   register: (payload) => http.post('/admin/register', payload, { auth: false }),
+  logout: () => http.post('/admin/logout'),
   me: () => http.get('/admin/me'),
+  updateProfile: (payload) => http.patch('/admin/profile', payload),
   changePassword: (currentPassword, newPassword) => http.put('/admin/password', { currentPassword, newPassword }),
 }
 
 export const dashboardApi = {
   summary: () => http.get('/admin/dashboard'),
-}
-
-export const adminsApi = {
-  list: () => http.get('/admin/admins'),
-  create: (payload) => http.post('/admin/admins', payload),
-  update: (id, payload) => http.patch(`/admin/admins/${id}`, payload),
 }
 
 export const ordersApi = {

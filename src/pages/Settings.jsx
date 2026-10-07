@@ -152,11 +152,77 @@ function Integrations() {
   )
 }
 
+// Name, email and role of the shop's one admin. Needs the current password.
+function EditProfile({ me, onSaved }) {
+  const { updateProfile } = useAuth()
+  const toast = useToast()
+  const [form, setForm] = useState({ name: me.name, email: me.email, role: me.role, currentPassword: '' })
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const changed = form.name.trim() !== me.name || form.email.trim().toLowerCase() !== me.email || form.role !== me.role
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setError('')
+    const payload = { currentPassword: form.currentPassword }
+    if (form.name.trim() !== me.name) payload.name = form.name.trim()
+    if (form.email.trim().toLowerCase() !== me.email) payload.email = form.email.trim()
+    if (form.role !== me.role) payload.role = form.role
+    setBusy(true)
+    try {
+      const res = await updateProfile(payload)
+      toast.success(res.message)
+      onSaved(res.data)
+      setForm({ name: res.data.name, email: res.data.email, role: res.data.role, currentPassword: '' })
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-5 space-y-4 border-t border-line pt-5">
+      <h3 className="text-sm font-bold text-ink">Edit profile</h3>
+      {error && <p className="rounded-xl bg-blush-50 p-3 text-sm text-blush-700 ring-1 ring-blush-200">{error}</p>}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Name">
+          <input className="input" required minLength={2} maxLength={80} autoComplete="name" value={form.name} onChange={set('name')} />
+        </Field>
+        <Field label="Role" hint="Admin can't change courier / Pixel keys.">
+          <select className="input" value={form.role} onChange={set('role')}>
+            <option value="superadmin">Superadmin</option>
+            <option value="admin">Admin</option>
+          </select>
+        </Field>
+      </div>
+      <Field label="Email" hint="You'll sign in with this email.">
+        <input type="email" className="input" required autoComplete="email" value={form.email} onChange={set('email')} />
+      </Field>
+      <Field label="Current password" hint="Needed to save changes.">
+        <input
+          type="password"
+          className="input"
+          required
+          autoComplete="current-password"
+          value={form.currentPassword}
+          onChange={set('currentPassword')}
+        />
+      </Field>
+      <button className="btn btn-primary" disabled={busy || !changed}>
+        {busy ? 'Saving…' : 'Save profile'}
+      </button>
+    </form>
+  )
+}
+
 export default function Settings() {
   const { changePassword } = useAuth()
   const toast = useToast()
   // Fresh copy from GET /api/admin/me (last login etc.)
-  const { data: me } = useApi(() => authApi.me(), [])
+  const { data: me, setData: setMe } = useApi(() => authApi.me(), [])
   const [form, setForm] = useState({ current: '', next: '', confirm: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -201,6 +267,7 @@ export default function Settings() {
                 <InfoRow label="Password changed">{me.passwordChangedAt ? dateTime(me.passwordChangedAt) : 'Never'}</InfoRow>
                 <InfoRow label="Member since">{date(me.createdAt)}</InfoRow>
               </div>
+              <EditProfile me={me} onSaved={setMe} />
             </>
           )}
         </section>

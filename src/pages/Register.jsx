@@ -1,11 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { authApi } from '../api/endpoints'
 import { useAuth } from '../context/AuthContext'
 import Icon from '../components/ui/Icon'
 import { Spinner } from '../components/ui/Feedback'
 
-// Public sign-up. New accounts are disabled until a superadmin approves them on the Admins page.
+// null while checking, then whether nobody has registered yet.
+// eslint-disable-next-line react-refresh/only-export-components
+export function useRegistrationOpen() {
+  const [open, setOpen] = useState(null)
+  useEffect(() => {
+    authApi
+      .registerStatus()
+      .then(({ data }) => setOpen(data.open))
+      .catch(() => setOpen(true))
+  }, [])
+  return open
+}
+
+// Public sign-up, open only until the shop's one admin has registered.
 export default function Register() {
   const { admin } = useAuth()
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
@@ -13,6 +26,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState('')
+  const open = useRegistrationOpen()
 
   if (admin) return <Navigate to="/" replace />
 
@@ -47,15 +61,25 @@ export default function Register() {
             </div>
             <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-ink">Account created</h2>
             <p className="mt-2 text-sm text-muted">{done}</p>
-            <p className="mt-2 text-sm text-muted">Once it's approved, sign in with {form.email.trim()}.</p>
+            <p className="mt-2 text-sm text-muted">Sign in with {form.email.trim()}.</p>
+            <Link to="/login" className="btn btn-primary mt-6 w-full py-3">
+              <Icon name="key" className="size-4" /> Go to sign in
+            </Link>
+          </>
+        ) : open === null ? (
+          <Spinner className="size-6" />
+        ) : !open ? (
+          <>
+            <h2 className="text-2xl font-extrabold tracking-tight text-ink">Registration is closed</h2>
+            <p className="mt-2 text-sm text-muted">This shop already has its admin. Only that account can sign in.</p>
             <Link to="/login" className="btn btn-primary mt-6 w-full py-3">
               <Icon name="key" className="size-4" /> Go to sign in
             </Link>
           </>
         ) : (
           <form onSubmit={submit}>
-            <h2 className="text-2xl font-extrabold tracking-tight text-ink">Create an admin account</h2>
-            <p className="mt-1 text-sm text-muted">A superadmin approves new accounts before they can sign in.</p>
+            <h2 className="text-2xl font-extrabold tracking-tight text-ink">Create the admin account</h2>
+            <p className="mt-1 text-sm text-muted">The shop has one admin. Once you register, registration closes.</p>
 
             {error && (
               <div className="mt-6 flex items-start gap-2 rounded-xl bg-blush-50 p-3 text-sm text-blush-700 ring-1 ring-blush-200">

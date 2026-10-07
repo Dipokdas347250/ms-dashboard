@@ -3,16 +3,24 @@ import { tokenStore, UNAUTHORIZED_EVENT } from '../api/client'
 import { authApi } from '../api/endpoints'
 
 const AuthContext = createContext(null)
+const HEARTBEAT_MS = 5 * 60 * 1000
 
 export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null)
   // Only "loading" when there is a saved token to verify.
   const [loading, setLoading] = useState(() => Boolean(tokenStore.get()))
 
-  const logout = useCallback(() => {
+  // Local only — used when the server already refused the token.
+  const clearSession = useCallback(() => {
     tokenStore.clear()
     setAdmin(null)
   }, [])
+
+  // Ends the session on the server too, so the admin can sign in from another device.
+  const logout = useCallback(() => {
+    authApi.logout().catch(() => {})
+    clearSession()
+  }, [clearSession])
 
   // Restore the session from a saved token.
   useEffect(() => {
@@ -24,11 +32,18 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  // Any 401 (expired token, password changed elsewhere, account disabled) logs out.
+  // Any 401 (expired token, session ended, password changed) logs out.
   useEffect(() => {
-    window.addEventListener(UNAUTHORIZED_EVENT, logout)
-    return () => window.removeEventListener(UNAUTHORIZED_EVENT, logout)
-  }, [logout])
+    window.addEventListener(UNAUTHORIZED_EVENT, clearSession)
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, clearSession)
+  }, [clearSession])
+
+  // The server ends a session after a while without requests; keep it alive while the dashboard is open.
+  useEffect(() => {
+    if (!admin) return
+    const t = setInterval(() => authApi.me().catch(() => {}), HEARTBEAT_MS)
+    return () => clearInterval(t)
+  }, [admin])
 
   const login = useCallback(async (email, password) => {
     const { data } = await authApi.login(email, password)
@@ -44,9 +59,15 @@ export function AuthProvider({ children }) {
     return res
   }, [])
 
+  const updateProfile = useCallback(async (payload) => {
+    const res = await authApi.updateProfile(payload)
+    setAdmin(res.data)
+    return res
+  }, [])
+
   const value = useMemo(
-    () => ({ admin, loading, login, logout, changePassword, isSuperadmin: admin?.role === 'superadmin' }),
-    [admin, loading, login, logout, changePassword],
+    () => ({ admin, loading, login, logout, changePassword, updateProfile, isSuperadmin: admin?.role === 'superadmin' }),
+    [admin, loading, login, logout, changePassword, updateProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

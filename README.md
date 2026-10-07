@@ -31,7 +31,7 @@ src/
     orders/     NewOrderModal
     products/   ProductFormModal, StockModal, ImagesModal
   pages/        Login, Dashboard, Orders, OrderDetail, Products, Customers, CustomerDetail,
-                Admins, Settings, TrackOrder, Storefront
+                Settings, TrackOrder, Storefront
   utils/        constants (statuses, areas, theme per status), format (money, dates)
 ```
 
@@ -39,14 +39,13 @@ src/
 
 | Page | Endpoints |
 |---|---|
-| Login / session | `POST /admin/login`, `GET /admin/me` |
+| Login / session | `POST /admin/login`, `POST /admin/logout`, `GET /admin/me` (also pinged every 5 min to keep the session alive) |
 | Top bar | `GET /health` (polled every 30 s) |
 | Dashboard | `GET /admin/dashboard`, `GET /orders?limit=6` |
 | Orders | `GET /orders` (status, q, area, from, to, page), `POST /orders` (new phone order) |
 | Order detail | `GET /orders/:id`, `PATCH /orders/:id/status`, `PATCH /orders/:id`, `POST /orders/:id/courier`, `POST /orders/:id/courier/sync` |
 | Products | `GET /products/admin/all`, `GET /products/admin/:id`, `POST /products`, `PUT /products/:id`, `PATCH /products/:id/stock`, `DELETE /products/:id`, `POST`/`DELETE /products/:id/images` |
 | Customers | `GET /customers`, `GET /customers/:id`, `PATCH /customers/:id` |
-| Admins (superadmin) | `GET /admin/admins`, `POST /admin/admins`, `PATCH /admin/admins/:id` |
 | Settings | `GET /admin/me`, `PUT /admin/password` |
 | Track order | `GET /orders/track/:orderId?phone=` |
 | Storefront | `GET /products`, `GET /products/:slug` |

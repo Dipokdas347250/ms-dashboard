@@ -1,6 +1,5 @@
 import { NavLink } from 'react-router-dom'
 import Icon from '../ui/Icon'
-import { useAuth } from '../../context/AuthContext'
 
 const NAV = [
   { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
@@ -12,10 +11,7 @@ const NAV = [
   { to: '/storefront', label: 'Storefront', icon: 'store' },
 ]
 
-const ADMIN_NAV = [
-  { to: '/admins', label: 'Admins', icon: 'shield', superadmin: true },
-  { to: '/settings', label: 'Settings', icon: 'settings' },
-]
+const ADMIN_NAV = [{ to: '/settings', label: 'Settings', icon: 'settings' }]
 
 function Item({ to, label, icon, end, onNavigate }) {
   return (
@@ -38,8 +34,6 @@ function Item({ to, label, icon, end, onNavigate }) {
 }
 
 export default function Sidebar({ open, onClose }) {
-  const { isSuperadmin } = useAuth()
-
   return (
     <>
       {open && <div className="animate-fade fixed inset-0 z-30 bg-brand-900/30 backdrop-blur-sm lg:hidden" onClick={onClose} />}
@@ -67,7 +61,7 @@ export default function Sidebar({ open, onClose }) {
             <Item key={item.to} {...item} onNavigate={onClose} />
           ))}
           <p className="px-3 pt-5 pb-2 text-[11px] font-bold tracking-widest text-muted/70 uppercase">Account</p>
-          {ADMIN_NAV.filter((i) => !i.superadmin || isSuperadmin).map((item) => (
+          {ADMIN_NAV.map((item) => (
             <Item key={item.to} {...item} onNavigate={onClose} />
           ))}
         </nav>

@@ -11,18 +11,16 @@ import Products from './pages/Products'
 import Videos from './pages/Videos'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
-import Admins from './pages/Admins'
 import Settings from './pages/Settings'
 import TrackOrder from './pages/TrackOrder'
 import Storefront from './pages/Storefront'
 import NotFound from './pages/NotFound'
 
-function RequireAuth({ children, superadmin }) {
-  const { admin, loading, isSuperadmin } = useAuth()
+function RequireAuth({ children }) {
+  const { admin, loading } = useAuth()
   const location = useLocation()
   if (loading) return <PageLoader label="Checking your session…" />
   if (!admin) return <Navigate to="/login" replace state={{ from: location }} />
-  if (superadmin && !isSuperadmin) return <Navigate to="/" replace />
   return children
 }
 
@@ -47,14 +45,6 @@ export default function App() {
         <Route path="customers/:id" element={<CustomerDetail />} />
         <Route path="track" element={<TrackOrder />} />
         <Route path="storefront" element={<Storefront />} />
-        <Route
-          path="admins"
-          element={
-            <RequireAuth superadmin>
-              <Admins />
-            </RequireAuth>
-          }
-        />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<NotFound />} />
       </Route>

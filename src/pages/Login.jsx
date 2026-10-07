@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Icon from '../components/ui/Icon'
 import { Spinner } from '../components/ui/Feedback'
+import { useRegistrationOpen } from './Register'
 
 export default function Login() {
   const { admin, login } = useAuth()
@@ -12,6 +13,7 @@ export default function Login() {
   const [show, setShow] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const registrationOpen = useRegistrationOpen()
 
   if (admin) return <Navigate to={location.state?.from?.pathname || '/'} replace />
 
@@ -112,15 +114,17 @@ export default function Login() {
             {busy ? <Spinner className="size-4 border-white/40 border-t-white" /> : <Icon name="key" className="size-4" />}
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
-          <p className="mt-6 text-center text-sm text-muted">
-            No account yet?{' '}
-            <Link to="/register" className="font-semibold text-brand-600 hover:text-blush-500">
-              Register
-            </Link>
-          </p>
-          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
+          {registrationOpen && (
+            <p className="mt-6 text-center text-sm text-muted">
+              No admin yet?{' '}
+              <Link to="/register" className="font-semibold text-brand-600 hover:text-blush-500">
+                Register
+              </Link>
+            </p>
+          )}
+          <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
             <Icon name="shield" className="size-3.5 text-brand-500" />
-            Admin access only. New accounts need superadmin approval.
+            Admin access only. One device can be signed in at a time.
           </p>
         </form>
       </div>
