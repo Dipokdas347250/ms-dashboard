@@ -75,10 +75,16 @@ function Integrations() {
 
   return (
     <>
+      {readOnly && (
+        <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200 lg:col-span-2">
+          <b>Courier and Pixel keys are locked.</b> You're signed in as <b>Admin</b>, and only a <b>Superadmin</b> can add or change them.
+          Set <b>Role → Superadmin</b> under <b>Edit profile</b> above, save, then add the keys here.
+        </p>
+      )}
       <section className="card p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="flex items-center gap-2 font-bold text-ink">
-            <Icon name="truck" className="size-5 text-brand-500" /> Steadfast courier
+            <Icon name="truck"className="size-5 text-brand-500" /> Steadfast courier
           </h2>
           <ConnectedBadge on={data.steadfast.connected} />
         </div>
@@ -95,7 +101,7 @@ function Integrations() {
           <div className="flex flex-wrap gap-2">
             {!readOnly && (
               <button className="btn btn-primary" disabled={busy === 'steadfast'}>
-                {busy === 'steadfast' ? 'Saving…' : 'Save keys'}
+                {busy === 'steadfast' ? 'Saving…' : data.steadfast.connected ? 'Update keys' : 'Add keys'}
               </button>
             )}
             <button
@@ -106,6 +112,16 @@ function Integrations() {
             >
               {busy === 'test' ? <Spinner className="size-4" /> : <Icon name="activity" className="size-4" />} Test connection
             </button>
+            {!readOnly && (data.steadfast.apiKey || data.steadfast.secretKey) && (
+              <button
+                type="button"
+                className="btn btn-danger"
+                disabled={busy === 'steadfast'}
+                onClick={() => confirm('Remove the Steadfast keys?') && save('steadfast', { steadfast: { apiKey: '', secretKey: '' } })}
+              >
+                Remove keys
+              </button>
+            )}
           </div>
         </form>
       </section>
@@ -136,7 +152,7 @@ function Integrations() {
           <div className="flex flex-wrap gap-2">
             {!readOnly && (
               <button className="btn btn-primary" disabled={busy === 'meta'}>
-                {busy === 'meta' ? 'Saving…' : 'Save pixel'}
+                {busy === 'meta' ? 'Saving…' : data.meta.pixelId ? 'Update pixel' : 'Add pixel'}
               </button>
             )}
             {!readOnly && data.meta.accessToken && (
@@ -147,7 +163,6 @@ function Integrations() {
           </div>
         </form>
       </section>
-      {readOnly && <p className="text-sm text-muted lg:col-span-2">Only a superadmin can change these keys.</p>}
     </>
   )
 }
